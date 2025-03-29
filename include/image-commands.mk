@@ -502,6 +502,26 @@ define Build/kernel-bin
 	cp $< $@
 endef
 
+define Build/gl-factory
+	$(eval GL_NAME := $(subst $(comma),_,$(word 1,$(SUPPORTED_DEVICES))))
+	$(eval GL_INCLUDE := $(STAGING_DIR)/usr/include/glinet-uboot-scr)
+	$(eval GL_SCRIPT := $(GL_INCLUDE)/$(GL_NAME).scr)
+	$(eval GL_IMGK := $(KDIR_TMP)/$(DEVICE_IMG_PREFIX)-squashfs-factory.img)
+	$(eval GL_ITS := $(KDIR_TMP)/$(GL_NAME).its)
+	$(if $(wildcard $(GL_INCLUDE)/*),$(CP) $(GL_INCLUDE)/* $(KDIR_TMP)/) \
+
+	$(TOPDIR)/scripts/mkits-glinet.sh \
+		$(if $(wildcard $(GL_SCRIPT)),-s $(GL_SCRIPT)) \
+		-f $(GL_IMGK) \
+		-o $(GL_ITS)
+
+	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f \
+		$(GL_ITS) \
+		$(GL_IMGK) \
+
+	$(RM) $(GL_ITS) $(GL_SCRIPT)
+endef
+
 define Build/linksys-image
 	let \
 		size="$$(stat -c%s $@)" \
@@ -617,13 +637,6 @@ define Build/qemu-image
 	else \
 		echo "WARNING: Install qemu-img to create VDI/VMDK images" >&2; exit 1; \
 	fi
-endef
-
-define Build/qsdk-ipq-factory-mmc
-	$(TOPDIR)/scripts/mkits-qsdk-ipq-image.sh \
-		$@.its kernel $(IMAGE_KERNEL) rootfs $(IMAGE_ROOTFS)
-	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
-	@mv $@.new $@
 endef
 
 define Build/qsdk-ipq-factory-nand
