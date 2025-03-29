@@ -15,6 +15,7 @@ define Device/glinet_gl-b3000
 	DEVICE_PACKAGES := \
 		ath11k-firmware-qcn6122 \
 		ipq-wifi-glinet_gl-b3000 \
+		glinet-uboot-scr \
 		dumpimage
 endef
 TARGET_DEVICES += glinet_gl-b3000
